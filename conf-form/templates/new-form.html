@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Conference Application — New</title>
+    <style>
+        :root{
+            --bg:#0f1724; --card:#0b1220; --accent:#7c5cff; --muted:#9aa4b2; --success:#22c55e; --danger:#ef4444;
+            --radius:12px; --glass: rgba(255,255,255,0.03);
+            font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+        }
+        *{box-sizing:border-box}
+        html,body{height:100%}
+        body{
+            margin:0; background:linear-gradient(180deg,#071029 0%, #081429 40%, #071022 100%);
+            display:flex; align-items:center; justify-content:center; color:#e6eef8;
+        }
+        .wrap{
+            width:min(920px,95%); padding:32px; background:linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border-radius:var(--radius); box-shadow: 0 8px 30px rgba(2,6,23,0.75);
+            display:grid; grid-template-columns: 1fr 360px; gap:28px; align-items:start;
+        }
+        header{grid-column:1/-1; display:flex; align-items:center; gap:16px}
+        .brand{
+            width:56px; height:56px; border-radius:12px; background:linear-gradient(135deg,var(--accent),#4ec4ff); display:flex; align-items:center; justify-content:center;
+            font-weight:700; color:#07203a; box-shadow: 0 6px 18px rgba(124,92,255,0.18);
+        }
+        h1{margin:0; font-size:1.25rem}
+        p.lead{margin:4px 0 0; color:var(--muted); font-size:0.95rem}
+        form{
+            background:var(--glass); padding:20px; border-radius:10px; backdrop-filter: blur(6px);
+            display:grid; gap:12px;
+        }
+        label{font-size:0.85rem; color:var(--muted); display:block; margin-bottom:6px}
+        .row{display:flex; gap:12px}
+        input[type="text"], select{
+            width:100%; padding:12px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.04);
+            background:transparent; color:inherit; outline:none;
+            transition: box-shadow .12s, border-color .12s;
+        }
+        input[type="text"]:focus, select:focus{box-shadow:0 6px 18px rgba(124,92,255,0.08); border-color:rgba(124,92,255,0.25)}
+        .field{display:flex; flex-direction:column}
+        .actions{display:flex; gap:10px; align-items:center; margin-top:6px}
+        button{
+            background:linear-gradient(90deg,var(--accent),#4ec4ff); color:#041022; border:none; padding:12px 16px; border-radius:10px; cursor:pointer; font-weight:600;
+            box-shadow: 0 8px 24px rgba(76,71,200,0.12);
+        }
+        button[disabled]{opacity:.65; cursor:wait}
+        .info{
+            padding:18px; background:rgba(255,255,255,0.02); border-radius:10px; color:var(--muted); font-size:0.95rem;
+        }
+        .aside{
+            padding:18px; display:flex; flex-direction:column; gap:12px; background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+            border-radius:10px;
+        }
+        .notice.error{border-left:4px solid var(--danger); padding:12px; color:#ffdfe0; background:rgba(239,68,68,0.06)}
+        .notice.ok{border-left:4px solid var(--success); padding:12px; color:#e6fff0; background:rgba(34,197,94,0.05)}
+        pre{white-space:pre-wrap; word-break:break-word; margin:0; font-size:0.9rem; color:var(--muted)}
+        .small{font-size:0.85rem;color:var(--muted)}
+        @media (max-width:840px){
+            .wrap{grid-template-columns:1fr; padding:18px}
+            .brand{width:48px;height:48px}
+        }
+    </style>
+</head>
+<body>
+    <main class="wrap" role="main">
+        <header>
+            <div class="brand">AP</div>
+            <div>
+                <h1>Conference Application Collector</h1>
+                <p class="lead">Submit new application for the conference. We'll redirect on success or show the server response when there's an issue.</p>
+            </div>
+        </header>
+
+        <form id="applicationForm" autocomplete="off" novalidate>
+            <div class="row">
+                <div class="field">
+                    <label for="firstName">First name</label>
+                    <input id="firstName" name="firstName" type="text" inputmode="text" required placeholder="Jane">
+                </div>
+                <div class="field">
+                    <label for="lastName">Last name</label>
+                    <input id="lastName" name="lastName" type="text" required placeholder="Doe">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="field" style="flex:1">
+                    <label for="passportNumber">Passport number</label>
+                    <input id="passportNumber" name="passportNumber" type="text" inputmode="numeric" required placeholder="AA1234567">
+                </div>
+                <div class="field" style="width:220px">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" required>
+                        <option value="">Choose category…</option>
+                        <option>Research</option>
+                        <option>Talk</option>
+                        <option>Poster</option>
+                        <option>Workshop</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="projectName">Project / Presentation name</label>
+                <input id="projectName" name="projectName" type="text" required placeholder="Title of the project or talk">
+            </div>
+
+            <div class="actions">
+                <button id="submitBtn" type="submit">Submit Application</button>
+                <div class="small" style="margin-left:auto">Fields marked required must be filled.</div>
+            </div>
+
+            <div id="result" aria-live="polite"></div>
+        </form>
+
+        <aside class="aside" aria-label="Information">
+            <div class="info">
+                This site collects applications to the conference. Data is sent to <code>/api/new_application</code>. If the server responds with a redirect URL in the JSON (key "redirect" or "exists"), you will be redirected there. Otherwise the full server response is shown below for troubleshooting.
+            </div>
+            <div class="notice small" style="background:rgba(255,255,255,0.01);border-left:4px solid rgba(255,255,255,0.03)">
+                Keep passport number and project title accurate.
+            </div>
+            <div id="serverOutput" style="margin-top:6px"><pre>{ }</pre></div>
+        </aside>
+    </main>
+
+    <script>
+        (function(){
+            const form = document.getElementById('applicationForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const result = document.getElementById('result');
+            const serverOutput = document.getElementById('serverOutput').querySelector('pre');
+
+            function showJSONAsError(json){
+                result.innerHTML = '';
+                const node = document.createElement('div');
+                node.className = 'notice error';
+                const pre = document.createElement('pre');
+                pre.textContent = JSON.stringify(json, null, 2);
+                node.appendChild(pre);
+                result.appendChild(node);
+                serverOutput.textContent = JSON.stringify(json, null, 2);
+            }
+
+            function showSuccessMessage(msg){
+                result.innerHTML = '';
+                const node = document.createElement('div');
+                node.className = 'notice ok';
+                node.textContent = msg;
+                result.appendChild(node);
+            }
+
+            form.addEventListener('submit', async function(ev){
+                ev.preventDefault();
+                result.innerHTML = '';
+                const formData = {
+                    firstName: form.firstName.value.trim(),
+                    lastName: form.lastName.value.trim(),
+                    passportNumber: form.passportNumber.value.trim(),
+                    category: form.category.value.trim(),
+                    projectName: form.projectName.value.trim()
+                };
+
+                // basic client-side validation
+                const missing = Object.entries(formData).filter(([k,v]) => !v);
+                if(missing.length){
+                    showJSONAsError({ error: 'validation_failed', missing: missing.map(m=>m[0]) });
+                    return;
+                }
+
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Sending…';
+
+                try {
+                    const res = await fetch('/api/new_application', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify(formData),
+                        credentials: 'same-origin'
+                    });
+
+                    let json;
+                    try {
+                        json = await res.json();
+                    } catch(e){
+                        // not JSON
+                        showJSONAsError({ error: 'invalid_json_response', status: res.status, text: await res.text() });
+                        return;
+                    }
+
+                    // show server output for debugging
+                    serverOutput.textContent = JSON.stringify(json, null, 2);
+
+                    // If server provided a redirect URL (key named "redirect" or "exists") -> follow it
+                    const redirectUrl = (json && (json.redirect || json.exists));
+                    if(redirectUrl && typeof redirectUrl === 'string' && redirectUrl.length){
+                        // small success indication before navigating
+                        showSuccessMessage('Redirecting…');
+                        // allow short delay to show message, then redirect
+                        setTimeout(()=> { location.href = redirectUrl; }, 350);
+                        return;
+                    }
+
+                    // otherwise treat response as error / info and show it
+                    showJSONAsError(json);
+
+                } catch (err) {
+                    showJSONAsError({ error: 'network_error', message: String(err) });
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Application';
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -3,8 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
+	"html/template"
+	"io"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/joho/godotenv"
@@ -60,16 +63,20 @@ func main() {
 	} else {
 		logger.Log(gologger.LevelSuccess, gologger.LogType("SETUP"), "Connected to Postgres database", "")
 	}
-	err = pgkit.RunMigrations(db.SQL, config.PGConfig)
-	if err != nil {
-		logger.Log(gologger.LevelFatal, gologger.LogType("SETUP"), fmt.Sprintf("Failed to run migrations: %v", err), "")
-		return
-	} else {
-		logger.Log(gologger.LevelSuccess, gologger.LogType("SETUP"), "Migrations ran successfully", "")
-	}
+	// err = pgkit.RunMigrations(db.SQL, config.PGConfig)
+	// if err != nil {
+	// 	logger.Log(gologger.LevelFatal, gologger.LogType("SETUP"), fmt.Sprintf("Failed to run migrations: %v", err), "")
+	// 	return
+	// } else {
+	// 	logger.Log(gologger.LevelSuccess, gologger.LogType("SETUP"), "Migrations ran successfully", "")
+	// }
 
 	// Create echo object
 	e := echo.New()
+
+	// Set up HTML template renderer
+	tpl := template.Must(template.ParseGlob("templates/*.html"))
+	e.Renderer = &Template{templates: tpl}
 
 	// Register custom validator
 	v := validator.New()
@@ -98,6 +105,9 @@ func main() {
 	api.GET("/ping", func(c echo.Context) error {
 		return c.JSON(200, echokitSchemas.Message{Status: "Sl-eco/bank backend is OK"})
 	})
+	api.GET("/", func(c echo.Context) error {
+		return c.Render(200, "templates/new-form.html", nil)
+	})
 
 	// Register routes
 	handler := &handlers.Handler{DB: db, Config: config, Logger: logger}
@@ -105,4 +115,13 @@ func main() {
 
 	// Start server
 	e.Logger.Fatal(e.Start(config.WebAppConfig.AppHost))
+}
+
+type Template struct {
+	templates *template.Template
+}
+
+func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+	tmplName := filepath.Base(name)
+	return t.templates.ExecuteTemplate(w, tmplName, data)
 }

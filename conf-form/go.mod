@@ -7,7 +7,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.15.0
 	github.com/nrf24l01/go-logger v1.1.1
-	github.com/nrf24l01/go-web-utils v1.12.4
+	github.com/nrf24l01/go-web-utils v1.12.5
 )
 
 require (
