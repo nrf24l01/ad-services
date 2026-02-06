@@ -99,14 +99,11 @@ func main() {
 	}))
 
 	// Api group
-	api := e.Group("")
+	api := e.Group("/api")
 
 	// Health check endpoint
 	api.GET("/ping", func(c echo.Context) error {
-		return c.JSON(200, echokitSchemas.Message{Status: "Sl-eco/bank backend is OK"})
-	})
-	api.GET("/", func(c echo.Context) error {
-		return c.Render(200, "templates/new-form.html", nil)
+		return c.JSON(200, echokitSchemas.Message{Status: "ConfFORM"})
 	})
 
 	// Register routes
